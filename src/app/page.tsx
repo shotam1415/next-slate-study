@@ -1,7 +1,8 @@
 "use client";
-import React, { useState, useCallback ,useMemo} from "react";
+import React, { useState, useCallback ,useMemo,useEffect} from "react";
 import { Slate, Editable, withReact ,ReactEditor} from "slate-react";
 import { BaseEditor, createEditor ,Editor,Transforms} from "slate";
+import { JsonViewer } from '@textea/json-viewer'
 
 type CustomElement = { type: "paragraph" | "code"|'line'|'italic'|null; children: CustomText[] };
 type CustomText = { text: string , bold?:boolean };
@@ -16,11 +17,13 @@ declare module "slate" {
 
 export default function Home() {
   const [editor] = useState(() => withReact(createEditor()))
+  const [textState,useTextState] = useState("")
 
   //初期値を設定。ローカルストレージが存在時は初期値差し替え
-  const initialValue = useMemo(
+  const initialValue = 
+  useMemo(
     () =>
-      JSON.parse(localStorage.getItem('content')||'null') || [
+      JSON.parse(localStorage.getItem('content') as string) || [
         {
           type: 'paragraph',
           children: [{ text: 'A line of text in a paragraph.' }],
@@ -28,6 +31,13 @@ export default function Home() {
       ],
     []
   )
+
+  useEffect(()=>{
+    const content = localStorage.getItem('content');
+    if (content) {
+      useTextState(content);
+    }
+  },[])
 
 
 const CustomEditor = {
@@ -121,8 +131,9 @@ const renderLeaf = useCallback((props: any) => {
 }, []);
 
   return (
-    <main className="grid place-items-center h-screen">
-      <div className="w-full">
+    <main className="grid place-items-center h-screen px-4">
+      <div className="w-full grid gap-8 md:grid-cols-2 max-w-screen-xl">
+        <div className="w-full">
         <div className="flex gap-8 mb-8 justify-center max-w-lg mx-auto rounded-lg p-2">
             <button
               onMouseDown={event => {
@@ -164,6 +175,7 @@ const renderLeaf = useCallback((props: any) => {
           if (isAstChange) {
             const content = JSON.stringify(value)
             localStorage.setItem('content', content)
+            useTextState(content)
           }
         }}>
 
@@ -193,6 +205,11 @@ const renderLeaf = useCallback((props: any) => {
             }}
           />
         </Slate>
+        </div>
+        <div className="max-w-lg mx-auto w-full">
+          <p className="font-bold text-xl mb-8 h-[56px] text-center">JSONプレビュー</p>
+          <JsonViewer value={textState} className="border"/>
+        </div>
       </div>
     </main>
   );
