@@ -17,13 +17,12 @@ declare module "slate" {
 
 export default function Home() {
   const [editor] = useState(() => withReact(createEditor()))
-  const [textState,useTextState] = useState("")
+  const [jsontextState,useJsonTextState] = useState("")
 
-  //初期値を設定。ローカルストレージが存在時は初期値差し替え
+  //初期値を設定。ローカルストレージが存在時は初期値差し替え:memo localstorageがエラー出る
   const initialValue = 
   useMemo(
-    () =>
-      JSON.parse(localStorage.getItem('content') as string) || [
+    () => JSON.parse(localStorage.getItem('content') as string) || [
         {
           type: 'paragraph',
           children: [{ text: 'A line of text in a paragraph.' }],
@@ -32,10 +31,11 @@ export default function Home() {
     []
   )
 
+  //JSONプレビュー表示用:
   useEffect(()=>{
     const content = localStorage.getItem('content');
     if (content) {
-      useTextState(content);
+      useJsonTextState(content);
     }
   },[])
 
@@ -175,7 +175,7 @@ const renderLeaf = useCallback((props: any) => {
           if (isAstChange) {
             const content = JSON.stringify(value)
             localStorage.setItem('content', content)
-            useTextState(content)
+            useJsonTextState(content)
           }
         }}>
 
@@ -208,7 +208,7 @@ const renderLeaf = useCallback((props: any) => {
         </div>
         <div className="max-w-lg mx-auto w-full">
           <p className="font-bold text-xl mb-8 h-[56px] text-center">JSONプレビュー</p>
-          <JsonViewer value={textState} className="border"/>
+          <JsonViewer value={jsontextState} className="border"/>
         </div>
       </div>
     </main>
